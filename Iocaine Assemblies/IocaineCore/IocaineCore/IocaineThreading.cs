@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 
+using Iocaine2.Logging;
+
 namespace Iocaine2.Threading
 {
     /// <summary>
@@ -208,6 +210,7 @@ namespace Iocaine2.Threading
     {
         #region Private Members
         private static List<IThreadable> m_bgThreadList = new List<IThreadable>();
+        private static readonly object m_bgThreadListLock = new object();
         #endregion Private Members
 
         #region Public Properties
@@ -216,24 +219,38 @@ namespace Iocaine2.Threading
         #region Public Methods
         public static void RegisterObject(IThreadable iObject)
         {
-            if (!m_bgThreadList.Contains(iObject))
+            lock (m_bgThreadListLock)
             {
-                m_bgThreadList.Add(iObject);
+                if (!m_bgThreadList.Contains(iObject))
+                {
+                    m_bgThreadList.Add(iObject);
+                }
             }
         }
         public static void FreezeAll(bool iBlock = true)
         {
-            foreach (IThreadable obj in m_bgThreadList)
+            IThreadable[] snapshot;
+            lock (m_bgThreadListLock)
+            {
+                snapshot = m_bgThreadList.ToArray();
+            }
+            foreach (IThreadable obj in snapshot)
             {
                 obj.Freeze();
             }
             if (iBlock)
             {
-                foreach(IThreadable obj in m_bgThreadList)
+                DateTime deadline = DateTime.UtcNow.AddSeconds(5);
+                foreach(IThreadable obj in snapshot)
                 {
                     bool notRunning = (obj.State == THREAD_STATE.FROZEN) || (obj.State == THREAD_STATE.STOPPED) || (obj.State == THREAD_STATE.UNSTARTED);
                     while (notRunning == false)
                     {
+                        if (DateTime.UtcNow > deadline)
+                        {
+                            LoggingFunctions.Warning("ThreadManager.FreezeAll: timed out after 5s waiting for a background thread (state: " + obj.State + ") to freeze; proceeding anyway.");
+                            break;
+                        }
                         Thread.Sleep(10);
                         notRunning = (obj.State == THREAD_STATE.FROZEN) || (obj.State == THREAD_STATE.STOPPED) || (obj.State == THREAD_STATE.UNSTARTED);
                     }
@@ -242,7 +259,12 @@ namespace Iocaine2.Threading
         }
         public static void ThawAll()
         {
-            foreach (IThreadable obj in m_bgThreadList)
+            IThreadable[] snapshot;
+            lock (m_bgThreadListLock)
+            {
+                snapshot = m_bgThreadList.ToArray();
+            }
+            foreach (IThreadable obj in snapshot)
             {
                 obj.Thaw();
             }

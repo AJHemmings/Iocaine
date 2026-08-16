@@ -275,7 +275,7 @@ namespace Iocaine2
         {
             try
             {
-                if (firstPolFound == false)
+                if ((firstPolFound == false) || (mainProc == null))
                 {
                     return;
                 }
@@ -929,6 +929,13 @@ namespace Iocaine2
                 LoggingFunctions.Debug("loopCnt = " + loopCnt + ".", LoggingFunctions.DBG_SCOPE.CH_MON);
                 if (loopCnt % nbSecondsPerInventoryUpdate == 0)
                 {
+                    //Re-check freeze/stop state before the slowest part of the loop, so a pending
+                    //freeze (e.g. from switching the attached process) is honored immediately
+                    //instead of waiting for a full, possibly multi-second inventory rebuild to finish.
+                    if (!__checkStatus())
+                    {
+                        break;
+                    }
                     Inventory.Containers.RebuildLists();
                 }
                 #endregion Inventory Related

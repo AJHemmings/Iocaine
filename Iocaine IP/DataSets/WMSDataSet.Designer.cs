@@ -361,9 +361,25 @@ namespace Iocaine2 {
             private global::System.Data.DataColumn columnWardrobe3Cap;
             
             private global::System.Data.DataColumn columnWardrobe4Occ;
-            
+
             private global::System.Data.DataColumn columnWardrobe4Cap;
-            
+
+            private global::System.Data.DataColumn columnWardrobe5Occ;
+
+            private global::System.Data.DataColumn columnWardrobe5Cap;
+
+            private global::System.Data.DataColumn columnWardrobe6Occ;
+
+            private global::System.Data.DataColumn columnWardrobe6Cap;
+
+            private global::System.Data.DataColumn columnWardrobe7Occ;
+
+            private global::System.Data.DataColumn columnWardrobe7Cap;
+
+            private global::System.Data.DataColumn columnWardrobe8Occ;
+
+            private global::System.Data.DataColumn columnWardrobe8Cap;
+
             private global::System.Data.DataColumn columnDateSaved;
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
@@ -598,7 +614,71 @@ namespace Iocaine2 {
                     return this.columnWardrobe4Cap;
                 }
             }
-            
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "15.0.0.0")]
+            public global::System.Data.DataColumn Wardrobe5OccColumn {
+                get {
+                    return this.columnWardrobe5Occ;
+                }
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "15.0.0.0")]
+            public global::System.Data.DataColumn Wardrobe5CapColumn {
+                get {
+                    return this.columnWardrobe5Cap;
+                }
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "15.0.0.0")]
+            public global::System.Data.DataColumn Wardrobe6OccColumn {
+                get {
+                    return this.columnWardrobe6Occ;
+                }
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "15.0.0.0")]
+            public global::System.Data.DataColumn Wardrobe6CapColumn {
+                get {
+                    return this.columnWardrobe6Cap;
+                }
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "15.0.0.0")]
+            public global::System.Data.DataColumn Wardrobe7OccColumn {
+                get {
+                    return this.columnWardrobe7Occ;
+                }
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "15.0.0.0")]
+            public global::System.Data.DataColumn Wardrobe7CapColumn {
+                get {
+                    return this.columnWardrobe7Cap;
+                }
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "15.0.0.0")]
+            public global::System.Data.DataColumn Wardrobe8OccColumn {
+                get {
+                    return this.columnWardrobe8Occ;
+                }
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "15.0.0.0")]
+            public global::System.Data.DataColumn Wardrobe8CapColumn {
+                get {
+                    return this.columnWardrobe8Cap;
+                }
+            }
+
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "15.0.0.0")]
             public global::System.Data.DataColumn DateSavedColumn {
@@ -668,8 +748,16 @@ namespace Iocaine2 {
                         byte Wardrobe2Cap, 
                         byte Wardrobe3Occ, 
                         byte Wardrobe3Cap, 
-                        byte Wardrobe4Occ, 
-                        byte Wardrobe4Cap, 
+                        byte Wardrobe4Occ,
+                        byte Wardrobe4Cap,
+                        byte Wardrobe5Occ,
+                        byte Wardrobe5Cap,
+                        byte Wardrobe6Occ,
+                        byte Wardrobe6Cap,
+                        byte Wardrobe7Occ,
+                        byte Wardrobe7Cap,
+                        byte Wardrobe8Occ,
+                        byte Wardrobe8Cap,
                         System.DateTime DateSaved) {
                 CharacterInfoRow rowCharacterInfoRow = ((CharacterInfoRow)(this.NewRow()));
                 object[] columnValuesArray = new object[] {
@@ -698,6 +786,14 @@ namespace Iocaine2 {
                         Wardrobe3Cap,
                         Wardrobe4Occ,
                         Wardrobe4Cap,
+                        Wardrobe5Occ,
+                        Wardrobe5Cap,
+                        Wardrobe6Occ,
+                        Wardrobe6Cap,
+                        Wardrobe7Occ,
+                        Wardrobe7Cap,
+                        Wardrobe8Occ,
+                        Wardrobe8Cap,
                         DateSaved};
                 rowCharacterInfoRow.ItemArray = columnValuesArray;
                 this.Rows.Add(rowCharacterInfoRow);
@@ -746,6 +842,14 @@ namespace Iocaine2 {
                 this.columnWardrobe3Cap = base.Columns["Wardrobe3Cap"];
                 this.columnWardrobe4Occ = base.Columns["Wardrobe4Occ"];
                 this.columnWardrobe4Cap = base.Columns["Wardrobe4Cap"];
+                this.columnWardrobe5Occ = base.Columns["Wardrobe5Occ"];
+                this.columnWardrobe5Cap = base.Columns["Wardrobe5Cap"];
+                this.columnWardrobe6Occ = base.Columns["Wardrobe6Occ"];
+                this.columnWardrobe6Cap = base.Columns["Wardrobe6Cap"];
+                this.columnWardrobe7Occ = base.Columns["Wardrobe7Occ"];
+                this.columnWardrobe7Cap = base.Columns["Wardrobe7Cap"];
+                this.columnWardrobe8Occ = base.Columns["Wardrobe8Occ"];
+                this.columnWardrobe8Cap = base.Columns["Wardrobe8Cap"];
                 this.columnDateSaved = base.Columns["DateSaved"];
             }
             
@@ -802,6 +906,22 @@ namespace Iocaine2 {
                 base.Columns.Add(this.columnWardrobe4Occ);
                 this.columnWardrobe4Cap = new global::System.Data.DataColumn("Wardrobe4Cap", typeof(byte), null, global::System.Data.MappingType.Element);
                 base.Columns.Add(this.columnWardrobe4Cap);
+                this.columnWardrobe5Occ = new global::System.Data.DataColumn("Wardrobe5Occ", typeof(byte), null, global::System.Data.MappingType.Element);
+                base.Columns.Add(this.columnWardrobe5Occ);
+                this.columnWardrobe5Cap = new global::System.Data.DataColumn("Wardrobe5Cap", typeof(byte), null, global::System.Data.MappingType.Element);
+                base.Columns.Add(this.columnWardrobe5Cap);
+                this.columnWardrobe6Occ = new global::System.Data.DataColumn("Wardrobe6Occ", typeof(byte), null, global::System.Data.MappingType.Element);
+                base.Columns.Add(this.columnWardrobe6Occ);
+                this.columnWardrobe6Cap = new global::System.Data.DataColumn("Wardrobe6Cap", typeof(byte), null, global::System.Data.MappingType.Element);
+                base.Columns.Add(this.columnWardrobe6Cap);
+                this.columnWardrobe7Occ = new global::System.Data.DataColumn("Wardrobe7Occ", typeof(byte), null, global::System.Data.MappingType.Element);
+                base.Columns.Add(this.columnWardrobe7Occ);
+                this.columnWardrobe7Cap = new global::System.Data.DataColumn("Wardrobe7Cap", typeof(byte), null, global::System.Data.MappingType.Element);
+                base.Columns.Add(this.columnWardrobe7Cap);
+                this.columnWardrobe8Occ = new global::System.Data.DataColumn("Wardrobe8Occ", typeof(byte), null, global::System.Data.MappingType.Element);
+                base.Columns.Add(this.columnWardrobe8Occ);
+                this.columnWardrobe8Cap = new global::System.Data.DataColumn("Wardrobe8Cap", typeof(byte), null, global::System.Data.MappingType.Element);
+                base.Columns.Add(this.columnWardrobe8Cap);
                 this.columnDateSaved = new global::System.Data.DataColumn("DateSaved", typeof(global::System.DateTime), null, global::System.Data.MappingType.Element);
                 base.Columns.Add(this.columnDateSaved);
                 this.columnCaseOcc.AllowDBNull = false;
@@ -828,6 +948,22 @@ namespace Iocaine2 {
                 this.columnWardrobe4Occ.DefaultValue = ((byte)(0));
                 this.columnWardrobe4Cap.AllowDBNull = false;
                 this.columnWardrobe4Cap.DefaultValue = ((byte)(0));
+                this.columnWardrobe5Occ.AllowDBNull = false;
+                this.columnWardrobe5Occ.DefaultValue = ((byte)(0));
+                this.columnWardrobe5Cap.AllowDBNull = false;
+                this.columnWardrobe5Cap.DefaultValue = ((byte)(0));
+                this.columnWardrobe6Occ.AllowDBNull = false;
+                this.columnWardrobe6Occ.DefaultValue = ((byte)(0));
+                this.columnWardrobe6Cap.AllowDBNull = false;
+                this.columnWardrobe6Cap.DefaultValue = ((byte)(0));
+                this.columnWardrobe7Occ.AllowDBNull = false;
+                this.columnWardrobe7Occ.DefaultValue = ((byte)(0));
+                this.columnWardrobe7Cap.AllowDBNull = false;
+                this.columnWardrobe7Cap.DefaultValue = ((byte)(0));
+                this.columnWardrobe8Occ.AllowDBNull = false;
+                this.columnWardrobe8Occ.DefaultValue = ((byte)(0));
+                this.columnWardrobe8Cap.AllowDBNull = false;
+                this.columnWardrobe8Cap.DefaultValue = ((byte)(0));
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
@@ -1596,7 +1732,95 @@ namespace Iocaine2 {
                     this[this.tableCharacterInfo.Wardrobe4CapColumn] = value;
                 }
             }
-            
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "15.0.0.0")]
+            public byte Wardrobe5Occ {
+                get {
+                    return ((byte)(this[this.tableCharacterInfo.Wardrobe5OccColumn]));
+                }
+                set {
+                    this[this.tableCharacterInfo.Wardrobe5OccColumn] = value;
+                }
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "15.0.0.0")]
+            public byte Wardrobe5Cap {
+                get {
+                    return ((byte)(this[this.tableCharacterInfo.Wardrobe5CapColumn]));
+                }
+                set {
+                    this[this.tableCharacterInfo.Wardrobe5CapColumn] = value;
+                }
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "15.0.0.0")]
+            public byte Wardrobe6Occ {
+                get {
+                    return ((byte)(this[this.tableCharacterInfo.Wardrobe6OccColumn]));
+                }
+                set {
+                    this[this.tableCharacterInfo.Wardrobe6OccColumn] = value;
+                }
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "15.0.0.0")]
+            public byte Wardrobe6Cap {
+                get {
+                    return ((byte)(this[this.tableCharacterInfo.Wardrobe6CapColumn]));
+                }
+                set {
+                    this[this.tableCharacterInfo.Wardrobe6CapColumn] = value;
+                }
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "15.0.0.0")]
+            public byte Wardrobe7Occ {
+                get {
+                    return ((byte)(this[this.tableCharacterInfo.Wardrobe7OccColumn]));
+                }
+                set {
+                    this[this.tableCharacterInfo.Wardrobe7OccColumn] = value;
+                }
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "15.0.0.0")]
+            public byte Wardrobe7Cap {
+                get {
+                    return ((byte)(this[this.tableCharacterInfo.Wardrobe7CapColumn]));
+                }
+                set {
+                    this[this.tableCharacterInfo.Wardrobe7CapColumn] = value;
+                }
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "15.0.0.0")]
+            public byte Wardrobe8Occ {
+                get {
+                    return ((byte)(this[this.tableCharacterInfo.Wardrobe8OccColumn]));
+                }
+                set {
+                    this[this.tableCharacterInfo.Wardrobe8OccColumn] = value;
+                }
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "15.0.0.0")]
+            public byte Wardrobe8Cap {
+                get {
+                    return ((byte)(this[this.tableCharacterInfo.Wardrobe8CapColumn]));
+                }
+                set {
+                    this[this.tableCharacterInfo.Wardrobe8CapColumn] = value;
+                }
+            }
+
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "15.0.0.0")]
             public System.DateTime DateSaved {

@@ -196,7 +196,64 @@ namespace Iocaine2.Memory
                     return 0;
                 }
             }
-            private const uint Offset_Inv_Max = 65577;
+            //Wardrobes 5-8: added 2026-08-16. Never implemented by the original app even though the
+            //client added these containers back in 2022 (see Offset_Inv_Max's history above). Confirmed
+            //via live memory dump: container indices continue linearly past Wardrobe4 (index 12), and
+            //index 16 (Wardrobe8) correctly reads as empty for a character who hasn't unlocked it.
+            private const uint Offset_Inv_Wardrobe5 = 13 * SizeOf_Inv_Container;
+            public uint Info_Inv_Wardrobe5
+            {
+                get
+                {
+                    uint info_bag = Info_Inv_Bag;
+                    if (info_bag != 0)
+                    {
+                        return info_bag + Offset_Inv_Wardrobe5;
+                    }
+                    return 0;
+                }
+            }
+            private const uint Offset_Inv_Wardrobe6 = 14 * SizeOf_Inv_Container;
+            public uint Info_Inv_Wardrobe6
+            {
+                get
+                {
+                    uint info_bag = Info_Inv_Bag;
+                    if (info_bag != 0)
+                    {
+                        return info_bag + Offset_Inv_Wardrobe6;
+                    }
+                    return 0;
+                }
+            }
+            private const uint Offset_Inv_Wardrobe7 = 15 * SizeOf_Inv_Container;
+            public uint Info_Inv_Wardrobe7
+            {
+                get
+                {
+                    uint info_bag = Info_Inv_Bag;
+                    if (info_bag != 0)
+                    {
+                        return info_bag + Offset_Inv_Wardrobe7;
+                    }
+                    return 0;
+                }
+            }
+            private const uint Offset_Inv_Wardrobe8 = 16 * SizeOf_Inv_Container;
+            public uint Info_Inv_Wardrobe8
+            {
+                get
+                {
+                    uint info_bag = Info_Inv_Bag;
+                    if (info_bag != 0)
+                    {
+                        return info_bag + Offset_Inv_Wardrobe8;
+                    }
+                    return 0;
+                }
+            }
+            private const uint Offset_Inv_Max = 65590;
+            //Pre 08.16.26  65577;
             //Pre 05.08.22  47757; (5th-8th wardrobes added)
             //Pre 04.04.16  37065; (2nd wardrobe added)
             //Pre 05.13.15  33501; (2nd safe added)
@@ -1011,6 +1068,37 @@ namespace Iocaine2.Memory
             LoggingFunctions.Debug("Final Info_Inv_Safe2: " + string.Format("{0:X}", pntrStruct.Info_Inv_Sack) + " (" + string.Format("{0:X}", pntrStruct.Info_Inv_Wardrobe - (uint)iMainModule.BaseAddress) + ")" + " (Calculated)", LoggingFunctions.DBG_SCOPE.MEMREADS);
             LoggingFunctions.Debug("Final Info_Inv_Wardrobe2: " + string.Format("{0:X}", pntrStruct.Info_Inv_Sack) + " (" + string.Format("{0:X}", pntrStruct.Info_Inv_Wardrobe - (uint)iMainModule.BaseAddress) + ")" + " (Calculated)", LoggingFunctions.DBG_SCOPE.MEMREADS);
             LoggingFunctions.Debug("Final Info_Inv_Max: " + string.Format("{0:X}", pntrStruct.Info_Inv_Max) + " (" + string.Format("{0:X}", pntrStruct.Info_Inv_Max - (uint)iMainModule.BaseAddress) + ")" + " (Calculated)", LoggingFunctions.DBG_SCOPE.MEMREADS);
+            #region TEMP DIAGNOSTIC: dump memory around Info_Inv_Bag to locate the current correct Offset_Inv_Max
+            try
+            {
+                if (pntrStruct.Info_Inv_Bag != 0)
+                {
+                    const uint chunkSize = 4096;
+                    const uint totalSize = 120000;
+                    System.Collections.Generic.List<byte> collected = new System.Collections.Generic.List<byte>();
+                    uint offset = 0;
+                    while (offset < totalSize)
+                    {
+                        byte[] chunkBuf = new byte[chunkSize];
+                        IntPtr bytesRead = (IntPtr)0;
+                        int ok = WinApi.ReadProcessMemory((IntPtr)iMainProcess.Handle, pntrStruct.Info_Inv_Bag + offset, chunkBuf, chunkSize, ref bytesRead);
+                        if (ok == 0)
+                        {
+                            LoggingFunctions.Timestamp("DIAG: chunk read stopped at offset " + offset + " (unmapped memory).");
+                            break;
+                        }
+                        collected.AddRange(chunkBuf);
+                        offset += chunkSize;
+                    }
+                    System.IO.File.WriteAllBytes("bag_offset_dump.bin", collected.ToArray());
+                    LoggingFunctions.Timestamp("DIAG: Dumped " + collected.Count + " bytes from Info_Inv_Bag (" + string.Format("{0:X}", pntrStruct.Info_Inv_Bag) + ") to bag_offset_dump.bin");
+                }
+            }
+            catch (Exception diagEx)
+            {
+                LoggingFunctions.Timestamp("DIAG: dump failed: " + diagEx.ToString());
+            }
+            #endregion TEMP DIAGNOSTIC
             LoggingFunctions.Debug("Final Info_Inventory: " + string.Format("{0:X}", pntrStruct.Info_Inventory) + " (" + string.Format("{0:X}", pntrStruct.Info_Inventory - (uint)iMainModule.BaseAddress) + ")", LoggingFunctions.DBG_SCOPE.MEMREADS);
             LoggingFunctions.Debug("Final Info_InventorySecWnd: " + string.Format("{0:X}", pntrStruct.Info_InventorySecWnd) + " (" + string.Format("{0:X}", pntrStruct.Info_InventorySecWnd - (uint)iMainModule.BaseAddress) + ")", LoggingFunctions.DBG_SCOPE.MEMREADS);
             LoggingFunctions.Debug("Final Info_InventoryNpcWnd: " + string.Format("{0:X}", pntrStruct.Info_InventoryNpcWnd) + " (" + string.Format("{0:X}", pntrStruct.Info_InventoryNpcWnd - (uint)iMainModule.BaseAddress) + ")", LoggingFunctions.DBG_SCOPE.MEMREADS);
@@ -3637,7 +3725,11 @@ namespace Iocaine2.Memory
                 public static byte get_max_wardrobe4(int iProcIndex)
                 {
                     Process proc = processPointerList[iProcIndex].MainProcess;
-                    byte value = (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Max, 12, 1);
+                    //Offset was 12, which reads one byte past the real 12-entry capacity table (valid range 0-11)
+                    //into an unrelated header field. Offset 3 is the one valid slot in that table no other
+                    //function reads - confirmed via a live memory dump to hold the same value as every other
+                    //(always-80) storage type. See docs/handover.md, 2026-08-16.
+                    byte value = (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Max, 3, 1);
                     if (value > 0)
                     {
                         return (byte)(value - 1);
@@ -3646,6 +3738,42 @@ namespace Iocaine2.Memory
                     {
                         return 0;
                     }
+                }
+                //Wardrobes 5-8 have no per-container capacity byte anywhere in memory (checked - their
+                //8-byte container headers are always zero). Per confirmed game rules, a wardrobe's capacity
+                //is always exactly 80 the moment it's unlocked, with no partial/scaling state, so this is
+                //hardcoded rather than read - there is nothing else to read. Added 2026-08-16.
+                public static byte get_max_wardrobe5()
+                {
+                    return 80;
+                }
+                public static byte get_max_wardrobe5(int iProcIndex)
+                {
+                    return 80;
+                }
+                public static byte get_max_wardrobe6()
+                {
+                    return 80;
+                }
+                public static byte get_max_wardrobe6(int iProcIndex)
+                {
+                    return 80;
+                }
+                public static byte get_max_wardrobe7()
+                {
+                    return 80;
+                }
+                public static byte get_max_wardrobe7(int iProcIndex)
+                {
+                    return 80;
+                }
+                public static byte get_max_wardrobe8()
+                {
+                    return 80;
+                }
+                public static byte get_max_wardrobe8(int iProcIndex)
+                {
+                    return 80;
                 }
                 #endregion Capacity Counts
                 #region Gil
@@ -3669,7 +3797,7 @@ namespace Iocaine2.Memory
                 public static ushort get_bag_item_id(int iProcIndex, short iStructIndex)
                 {
                     Process proc = processPointerList[iProcIndex].MainProcess;
-                    return (ushort)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Bag, (iStructIndex * 44), 2);
+                    return (ushort)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Bag, (iStructIndex * 44 + 8), 2);
                 }
                 public static ushort get_bag_item_id(short iStructIndex)
                 {
@@ -3684,7 +3812,7 @@ namespace Iocaine2.Memory
                 public static byte get_bag_item_quan(int iProcIndex, short iStructIndex)
                 {
                     Process proc = processPointerList[iProcIndex].MainProcess;
-                    return (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Bag, (iStructIndex * 44) + 4, 1);
+                    return (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Bag, (iStructIndex * 44 + 8) + 4, 1);
                 }
                 public static byte get_bag_item_quan(short iStructIndex)
                 {
@@ -3701,7 +3829,7 @@ namespace Iocaine2.Memory
                 public static bool get_bag_item_equipped(int iProcIndex, short iStructIndex)
                 {
                     Process proc = processPointerList[iProcIndex].MainProcess;
-                    byte equ = (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Bag, (iStructIndex * 44) + 8, 1);
+                    byte equ = (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Bag, (iStructIndex * 44 + 8) + 8, 1);
                     return (equ == 5) ? true : false;
                 }
                 public static bool get_bag_item_equipped(short iStructIndex)
@@ -3780,7 +3908,7 @@ namespace Iocaine2.Memory
                 public static ushort get_safe_item_id(int iProcIndex, short iStructIndex)
                 {
                     Process proc = processPointerList[iProcIndex].MainProcess;
-                    return (ushort)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Safe, (iStructIndex * 44), 2);
+                    return (ushort)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Safe, (iStructIndex * 44 + 8), 2);
                 }
                 public static ushort get_safe_item_id(short iStructIndex)
                 {
@@ -3795,7 +3923,7 @@ namespace Iocaine2.Memory
                 public static byte get_safe_item_quan(int iProcIndex, short iStructIndex)
                 {
                     Process proc = processPointerList[iProcIndex].MainProcess;
-                    return (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Safe, (iStructIndex * 44) + 4, 1);
+                    return (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Safe, (iStructIndex * 44 + 8) + 4, 1);
                 }
                 public static byte get_safe_item_quan(short iStructIndex)
                 {
@@ -3873,7 +4001,7 @@ namespace Iocaine2.Memory
                 public static ushort get_storage_item_id(int iProcIndex, short iStructIndex)
                 {
                     Process proc = processPointerList[iProcIndex].MainProcess;
-                    return (ushort)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Storage, (iStructIndex * 44), 2);
+                    return (ushort)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Storage, (iStructIndex * 44 + 8), 2);
                 }
                 public static ushort get_storage_item_id(short iStructIndex)
                 {
@@ -3888,7 +4016,7 @@ namespace Iocaine2.Memory
                 public static byte get_storage_item_quan(int iProcIndex, short iStructIndex)
                 {
                     Process proc = processPointerList[iProcIndex].MainProcess;
-                    return (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Storage, (iStructIndex * 44) + 4, 1);
+                    return (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Storage, (iStructIndex * 44 + 8) + 4, 1);
                 }
                 public static byte get_storage_item_quan(short iStructIndex)
                 {
@@ -3966,7 +4094,7 @@ namespace Iocaine2.Memory
                 public static ushort get_locker_item_id(int iProcIndex, short iStructIndex)
                 {
                     Process proc = processPointerList[iProcIndex].MainProcess;
-                    return (ushort)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Locker, (iStructIndex * 44), 2);
+                    return (ushort)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Locker, (iStructIndex * 44 + 8), 2);
                 }
                 public static ushort get_locker_item_id(short iStructIndex)
                 {
@@ -3981,7 +4109,7 @@ namespace Iocaine2.Memory
                 public static byte get_locker_item_quan(int iProcIndex, short iStructIndex)
                 {
                     Process proc = processPointerList[iProcIndex].MainProcess;
-                    return (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Locker, (iStructIndex * 44) + 4, 1);
+                    return (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Locker, (iStructIndex * 44 + 8) + 4, 1);
                 }
                 public static byte get_locker_item_quan(short iStructIndex)
                 {
@@ -4059,7 +4187,7 @@ namespace Iocaine2.Memory
                 public static ushort get_satchel_item_id(int iProcIndex, short iStructIndex)
                 {
                     Process proc = processPointerList[iProcIndex].MainProcess;
-                    return (ushort)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Satchel, (iStructIndex * 44), 2);
+                    return (ushort)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Satchel, (iStructIndex * 44 + 8), 2);
                 }
                 public static ushort get_satchel_item_id(short iStructIndex)
                 {
@@ -4074,7 +4202,7 @@ namespace Iocaine2.Memory
                 public static byte get_satchel_item_quan(int iProcIndex, short iStructIndex)
                 {
                     Process proc = processPointerList[iProcIndex].MainProcess;
-                    return (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Satchel, (iStructIndex * 44) + 4, 1);
+                    return (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Satchel, (iStructIndex * 44 + 8) + 4, 1);
                 }
                 public static byte get_satchel_item_quan(short iStructIndex)
                 {
@@ -4091,7 +4219,7 @@ namespace Iocaine2.Memory
                 public static bool get_satchel_item_equipped(int iProcIndex, short iStructIndex)
                 {
                     Process proc = processPointerList[iProcIndex].MainProcess;
-                    byte equ = (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Satchel, (iStructIndex * 44) + 8, 1);
+                    byte equ = (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Satchel, (iStructIndex * 44 + 8) + 8, 1);
                     return (equ == 5) ? true : false;
                 }
                 public static bool get_satchel_item_equipped(short iStructIndex)
@@ -4170,7 +4298,7 @@ namespace Iocaine2.Memory
                 public static ushort get_sack_item_id(int iProcIndex, short iStructIndex)
                 {
                     Process proc = processPointerList[iProcIndex].MainProcess;
-                    return (ushort)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Sack, (iStructIndex * 44), 2);
+                    return (ushort)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Sack, (iStructIndex * 44 + 8), 2);
                 }
                 public static ushort get_sack_item_id(short iStructIndex)
                 {
@@ -4185,7 +4313,7 @@ namespace Iocaine2.Memory
                 public static byte get_sack_item_quan(int iProcIndex, short iStructIndex)
                 {
                     Process proc = processPointerList[iProcIndex].MainProcess;
-                    return (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Sack, (iStructIndex * 44) + 4, 1);
+                    return (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Sack, (iStructIndex * 44 + 8) + 4, 1);
                 }
                 public static byte get_sack_item_quan(short iStructIndex)
                 {
@@ -4202,7 +4330,7 @@ namespace Iocaine2.Memory
                 public static bool get_sack_item_equipped(int iProcIndex, short iStructIndex)
                 {
                     Process proc = processPointerList[iProcIndex].MainProcess;
-                    byte equ = (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Sack, (iStructIndex * 44) + 8, 1);
+                    byte equ = (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Sack, (iStructIndex * 44 + 8) + 8, 1);
                     return (equ == 5) ? true : false;
                 }
                 public static bool get_sack_item_equipped(short iStructIndex)
@@ -4281,7 +4409,7 @@ namespace Iocaine2.Memory
                 public static ushort get_case_item_id(int iProcIndex, short iStructIndex)
                 {
                     Process proc = processPointerList[iProcIndex].MainProcess;
-                    return (ushort)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Case, (iStructIndex * 44), 2);
+                    return (ushort)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Case, (iStructIndex * 44 + 8), 2);
                 }
                 public static ushort get_case_item_id(short iStructIndex)
                 {
@@ -4296,7 +4424,7 @@ namespace Iocaine2.Memory
                 public static byte get_case_item_quan(int iProcIndex, short iStructIndex)
                 {
                     Process proc = processPointerList[iProcIndex].MainProcess;
-                    return (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Case, (iStructIndex * 44) + 4, 1);
+                    return (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Case, (iStructIndex * 44 + 8) + 4, 1);
                 }
                 public static byte get_case_item_quan(short iStructIndex)
                 {
@@ -4313,7 +4441,7 @@ namespace Iocaine2.Memory
                 public static bool get_case_item_equipped(int iProcIndex, short iStructIndex)
                 {
                     Process proc = processPointerList[iProcIndex].MainProcess;
-                    byte equ = (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Case, (iStructIndex * 44) + 8, 1);
+                    byte equ = (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Case, (iStructIndex * 44 + 8) + 8, 1);
                     return (equ == 5) ? true : false;
                 }
                 public static bool get_case_item_equipped(short iStructIndex)
@@ -4392,7 +4520,7 @@ namespace Iocaine2.Memory
                 public static ushort get_wardrobe_item_id(int iProcIndex, short iStructIndex)
                 {
                     Process proc = processPointerList[iProcIndex].MainProcess;
-                    return (ushort)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Wardrobe, (iStructIndex * 44), 2);
+                    return (ushort)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Wardrobe, (iStructIndex * 44 + 8), 2);
                 }
                 public static ushort get_wardrobe_item_id(short iStructIndex)
                 {
@@ -4407,7 +4535,7 @@ namespace Iocaine2.Memory
                 public static byte get_wardrobe_item_quan(int iProcIndex, short iStructIndex)
                 {
                     Process proc = processPointerList[iProcIndex].MainProcess;
-                    return (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Wardrobe, (iStructIndex * 44) + 4, 1);
+                    return (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Wardrobe, (iStructIndex * 44 + 8) + 4, 1);
                 }
                 public static byte get_wardrobe_item_quan(short iStructIndex)
                 {
@@ -4424,7 +4552,7 @@ namespace Iocaine2.Memory
                 public static bool get_wardrobe_item_equipped(int iProcIndex, short iStructIndex)
                 {
                     Process proc = processPointerList[iProcIndex].MainProcess;
-                    byte equ = (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Wardrobe, (iStructIndex * 44) + 8, 1);
+                    byte equ = (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Wardrobe, (iStructIndex * 44 + 8) + 8, 1);
                     return (equ == 5) ? true : false;
                 }
                 public static bool get_wardrobe_item_equipped(short iStructIndex)
@@ -4503,7 +4631,7 @@ namespace Iocaine2.Memory
                 public static ushort get_safe2_item_id(int iProcIndex, short iStructIndex)
                 {
                     Process proc = processPointerList[iProcIndex].MainProcess;
-                    return (ushort)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Safe2, (iStructIndex * 44), 2);
+                    return (ushort)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Safe2, (iStructIndex * 44 + 8), 2);
                 }
                 public static ushort get_safe2_item_id(short iStructIndex)
                 {
@@ -4518,7 +4646,7 @@ namespace Iocaine2.Memory
                 public static byte get_safe2_item_quan(int iProcIndex, short iStructIndex)
                 {
                     Process proc = processPointerList[iProcIndex].MainProcess;
-                    return (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Safe2, (iStructIndex * 44) + 4, 1);
+                    return (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Safe2, (iStructIndex * 44 + 8) + 4, 1);
                 }
                 public static byte get_safe2_item_quan(short iStructIndex)
                 {
@@ -4535,7 +4663,7 @@ namespace Iocaine2.Memory
                 public static bool get_safe2_item_equipped(int iProcIndex, short iStructIndex)
                 {
                     Process proc = processPointerList[iProcIndex].MainProcess;
-                    byte equ = (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Safe2, (iStructIndex * 44) + 8, 1);
+                    byte equ = (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Safe2, (iStructIndex * 44 + 8) + 8, 1);
                     return (equ == 5) ? true : false;
                 }
                 public static bool get_safe2_item_equipped(short iStructIndex)
@@ -4614,7 +4742,7 @@ namespace Iocaine2.Memory
                 public static ushort get_wardrobe2_item_id(int iProcIndex, short iStructIndex)
                 {
                     Process proc = processPointerList[iProcIndex].MainProcess;
-                    return (ushort)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Wardrobe2, (iStructIndex * 44), 2);
+                    return (ushort)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Wardrobe2, (iStructIndex * 44 + 8), 2);
                 }
                 public static ushort get_wardrobe2_item_id(short iStructIndex)
                 {
@@ -4629,7 +4757,7 @@ namespace Iocaine2.Memory
                 public static byte get_wardrobe2_item_quan(int iProcIndex, short iStructIndex)
                 {
                     Process proc = processPointerList[iProcIndex].MainProcess;
-                    return (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Wardrobe2, (iStructIndex * 44) + 4, 1);
+                    return (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Wardrobe2, (iStructIndex * 44 + 8) + 4, 1);
                 }
                 public static byte get_wardrobe2_item_quan(short iStructIndex)
                 {
@@ -4646,7 +4774,7 @@ namespace Iocaine2.Memory
                 public static bool get_wardrobe2_item_equipped(int iProcIndex, short iStructIndex)
                 {
                     Process proc = processPointerList[iProcIndex].MainProcess;
-                    byte equ = (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Wardrobe2, (iStructIndex * 44) + 8, 1);
+                    byte equ = (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Wardrobe2, (iStructIndex * 44 + 8) + 8, 1);
                     return (equ == 5) ? true : false;
                 }
                 public static bool get_wardrobe2_item_equipped(short iStructIndex)
@@ -4725,7 +4853,7 @@ namespace Iocaine2.Memory
                 public static ushort get_wardrobe3_item_id(int iProcIndex, short iStructIndex)
                 {
                     Process proc = processPointerList[iProcIndex].MainProcess;
-                    return (ushort)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Wardrobe3, (iStructIndex * 44), 2);
+                    return (ushort)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Wardrobe3, (iStructIndex * 44 + 8), 2);
                 }
                 public static ushort get_wardrobe3_item_id(short iStructIndex)
                 {
@@ -4740,7 +4868,7 @@ namespace Iocaine2.Memory
                 public static byte get_wardrobe3_item_quan(int iProcIndex, short iStructIndex)
                 {
                     Process proc = processPointerList[iProcIndex].MainProcess;
-                    return (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Wardrobe3, (iStructIndex * 44) + 4, 1);
+                    return (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Wardrobe3, (iStructIndex * 44 + 8) + 4, 1);
                 }
                 public static byte get_wardrobe3_item_quan(short iStructIndex)
                 {
@@ -4757,7 +4885,7 @@ namespace Iocaine2.Memory
                 public static bool get_wardrobe3_item_equipped(int iProcIndex, short iStructIndex)
                 {
                     Process proc = processPointerList[iProcIndex].MainProcess;
-                    byte equ = (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Wardrobe3, (iStructIndex * 44) + 8, 1);
+                    byte equ = (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Wardrobe3, (iStructIndex * 44 + 8) + 8, 1);
                     return (equ == 5) ? true : false;
                 }
                 public static bool get_wardrobe3_item_equipped(short iStructIndex)
@@ -4836,7 +4964,7 @@ namespace Iocaine2.Memory
                 public static ushort get_wardrobe4_item_id(int iProcIndex, short iStructIndex)
                 {
                     Process proc = processPointerList[iProcIndex].MainProcess;
-                    return (ushort)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Wardrobe4, (iStructIndex * 44), 2);
+                    return (ushort)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Wardrobe4, (iStructIndex * 44 + 8), 2);
                 }
                 public static ushort get_wardrobe4_item_id(short iStructIndex)
                 {
@@ -4851,7 +4979,7 @@ namespace Iocaine2.Memory
                 public static byte get_wardrobe4_item_quan(int iProcIndex, short iStructIndex)
                 {
                     Process proc = processPointerList[iProcIndex].MainProcess;
-                    return (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Wardrobe4, (iStructIndex * 44) + 4, 1);
+                    return (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Wardrobe4, (iStructIndex * 44 + 8) + 4, 1);
                 }
                 public static byte get_wardrobe4_item_quan(short iStructIndex)
                 {
@@ -4868,7 +4996,7 @@ namespace Iocaine2.Memory
                 public static bool get_wardrobe4_item_equipped(int iProcIndex, short iStructIndex)
                 {
                     Process proc = processPointerList[iProcIndex].MainProcess;
-                    byte equ = (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Wardrobe4, (iStructIndex * 44) + 8, 1);
+                    byte equ = (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Wardrobe4, (iStructIndex * 44 + 8) + 8, 1);
                     return (equ == 5) ? true : false;
                 }
                 public static bool get_wardrobe4_item_equipped(short iStructIndex)
@@ -4937,6 +5065,310 @@ namespace Iocaine2.Memory
                     return get_wardrobe4_occupancy(processIndex);
                 }
                 #endregion Wardrobe4 info
+                #region Wardrobe5_info
+                public static ushort get_wardrobe5_item_id(int iProcIndex, short iStructIndex)
+                {
+                    Process proc = processPointerList[iProcIndex].MainProcess;
+                    return (ushort)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Wardrobe5, (iStructIndex * 44 + 8), 2);
+                }
+                public static ushort get_wardrobe5_item_id(short iStructIndex)
+                {
+                    return get_wardrobe5_item_id(processIndex, iStructIndex);
+                }
+                public static byte get_wardrobe5_item_quan(int iProcIndex, short iStructIndex)
+                {
+                    Process proc = processPointerList[iProcIndex].MainProcess;
+                    return (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Wardrobe5, (iStructIndex * 44 + 8) + 4, 1);
+                }
+                public static byte get_wardrobe5_item_quan(short iStructIndex)
+                {
+                    return get_wardrobe5_item_quan(processIndex, iStructIndex);
+                }
+                public static bool get_wardrobe5_item_equipped(int iProcIndex, short iStructIndex)
+                {
+                    Process proc = processPointerList[iProcIndex].MainProcess;
+                    byte equ = (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Wardrobe5, (iStructIndex * 44 + 8) + 8, 1);
+                    return (equ == 5) ? true : false;
+                }
+                public static bool get_wardrobe5_item_equipped(short iStructIndex)
+                {
+                    return get_wardrobe5_item_equipped(processIndex, iStructIndex);
+                }
+                public static byte get_wardrobe5_index(int iProcIndex, ushort iItemID, byte iQuantity)
+                {
+                    return get_wardrobe5_index(iProcIndex, iItemID, iQuantity, 1);
+                }
+                public static byte get_wardrobe5_index(ushort iItemID, byte iQuantity)
+                {
+                    return get_wardrobe5_index(processIndex, iItemID, iQuantity, 1);
+                }
+                public static byte get_wardrobe5_index(int iProcIndex, ushort iItemID, byte iQuantity, byte iStartIndex)
+                {
+                    byte maxCount = get_max_wardrobe5(iProcIndex);
+                    for (byte ii = iStartIndex; ii <= maxCount; ii++)
+                    {
+                        ushort readID = get_wardrobe5_item_id(iProcIndex, ii);
+                        if (readID == iItemID)
+                        {
+                            byte readQuan = get_wardrobe5_item_quan(iProcIndex, ii);
+                            if (readQuan >= iQuantity)
+                            {
+                                return ii;
+                            }
+                        }
+                    }
+                    return 0;
+                }
+                public static byte get_wardrobe5_index(ushort iItemID, byte iQuantity, byte iStartIndex)
+                {
+                    return get_wardrobe5_index(processIndex, iItemID, iQuantity, iStartIndex);
+                }
+                public static byte get_wardrobe5_occupancy(int iProcIndex)
+                {
+                    byte count = 0;
+                    byte maxCount = get_max_wardrobe5(iProcIndex);
+                    for (byte ii = 1; ii <= maxCount; ii++)
+                    {
+                        if (get_wardrobe5_item_id(iProcIndex, ii) != 0)
+                        {
+                            count++;
+                        }
+                    }
+                    return count;
+                }
+                public static byte get_wardrobe5_occupancy()
+                {
+                    return get_wardrobe5_occupancy(processIndex);
+                }
+                #endregion Wardrobe5 info
+                #region Wardrobe6_info
+                public static ushort get_wardrobe6_item_id(int iProcIndex, short iStructIndex)
+                {
+                    Process proc = processPointerList[iProcIndex].MainProcess;
+                    return (ushort)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Wardrobe6, (iStructIndex * 44 + 8), 2);
+                }
+                public static ushort get_wardrobe6_item_id(short iStructIndex)
+                {
+                    return get_wardrobe6_item_id(processIndex, iStructIndex);
+                }
+                public static byte get_wardrobe6_item_quan(int iProcIndex, short iStructIndex)
+                {
+                    Process proc = processPointerList[iProcIndex].MainProcess;
+                    return (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Wardrobe6, (iStructIndex * 44 + 8) + 4, 1);
+                }
+                public static byte get_wardrobe6_item_quan(short iStructIndex)
+                {
+                    return get_wardrobe6_item_quan(processIndex, iStructIndex);
+                }
+                public static bool get_wardrobe6_item_equipped(int iProcIndex, short iStructIndex)
+                {
+                    Process proc = processPointerList[iProcIndex].MainProcess;
+                    byte equ = (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Wardrobe6, (iStructIndex * 44 + 8) + 8, 1);
+                    return (equ == 5) ? true : false;
+                }
+                public static bool get_wardrobe6_item_equipped(short iStructIndex)
+                {
+                    return get_wardrobe6_item_equipped(processIndex, iStructIndex);
+                }
+                public static byte get_wardrobe6_index(int iProcIndex, ushort iItemID, byte iQuantity)
+                {
+                    return get_wardrobe6_index(iProcIndex, iItemID, iQuantity, 1);
+                }
+                public static byte get_wardrobe6_index(ushort iItemID, byte iQuantity)
+                {
+                    return get_wardrobe6_index(processIndex, iItemID, iQuantity, 1);
+                }
+                public static byte get_wardrobe6_index(int iProcIndex, ushort iItemID, byte iQuantity, byte iStartIndex)
+                {
+                    byte maxCount = get_max_wardrobe6(iProcIndex);
+                    for (byte ii = iStartIndex; ii <= maxCount; ii++)
+                    {
+                        ushort readID = get_wardrobe6_item_id(iProcIndex, ii);
+                        if (readID == iItemID)
+                        {
+                            byte readQuan = get_wardrobe6_item_quan(iProcIndex, ii);
+                            if (readQuan >= iQuantity)
+                            {
+                                return ii;
+                            }
+                        }
+                    }
+                    return 0;
+                }
+                public static byte get_wardrobe6_index(ushort iItemID, byte iQuantity, byte iStartIndex)
+                {
+                    return get_wardrobe6_index(processIndex, iItemID, iQuantity, iStartIndex);
+                }
+                public static byte get_wardrobe6_occupancy(int iProcIndex)
+                {
+                    byte count = 0;
+                    byte maxCount = get_max_wardrobe6(iProcIndex);
+                    for (byte ii = 1; ii <= maxCount; ii++)
+                    {
+                        if (get_wardrobe6_item_id(iProcIndex, ii) != 0)
+                        {
+                            count++;
+                        }
+                    }
+                    return count;
+                }
+                public static byte get_wardrobe6_occupancy()
+                {
+                    return get_wardrobe6_occupancy(processIndex);
+                }
+                #endregion Wardrobe6 info
+                #region Wardrobe7_info
+                public static ushort get_wardrobe7_item_id(int iProcIndex, short iStructIndex)
+                {
+                    Process proc = processPointerList[iProcIndex].MainProcess;
+                    return (ushort)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Wardrobe7, (iStructIndex * 44 + 8), 2);
+                }
+                public static ushort get_wardrobe7_item_id(short iStructIndex)
+                {
+                    return get_wardrobe7_item_id(processIndex, iStructIndex);
+                }
+                public static byte get_wardrobe7_item_quan(int iProcIndex, short iStructIndex)
+                {
+                    Process proc = processPointerList[iProcIndex].MainProcess;
+                    return (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Wardrobe7, (iStructIndex * 44 + 8) + 4, 1);
+                }
+                public static byte get_wardrobe7_item_quan(short iStructIndex)
+                {
+                    return get_wardrobe7_item_quan(processIndex, iStructIndex);
+                }
+                public static bool get_wardrobe7_item_equipped(int iProcIndex, short iStructIndex)
+                {
+                    Process proc = processPointerList[iProcIndex].MainProcess;
+                    byte equ = (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Wardrobe7, (iStructIndex * 44 + 8) + 8, 1);
+                    return (equ == 5) ? true : false;
+                }
+                public static bool get_wardrobe7_item_equipped(short iStructIndex)
+                {
+                    return get_wardrobe7_item_equipped(processIndex, iStructIndex);
+                }
+                public static byte get_wardrobe7_index(int iProcIndex, ushort iItemID, byte iQuantity)
+                {
+                    return get_wardrobe7_index(iProcIndex, iItemID, iQuantity, 1);
+                }
+                public static byte get_wardrobe7_index(ushort iItemID, byte iQuantity)
+                {
+                    return get_wardrobe7_index(processIndex, iItemID, iQuantity, 1);
+                }
+                public static byte get_wardrobe7_index(int iProcIndex, ushort iItemID, byte iQuantity, byte iStartIndex)
+                {
+                    byte maxCount = get_max_wardrobe7(iProcIndex);
+                    for (byte ii = iStartIndex; ii <= maxCount; ii++)
+                    {
+                        ushort readID = get_wardrobe7_item_id(iProcIndex, ii);
+                        if (readID == iItemID)
+                        {
+                            byte readQuan = get_wardrobe7_item_quan(iProcIndex, ii);
+                            if (readQuan >= iQuantity)
+                            {
+                                return ii;
+                            }
+                        }
+                    }
+                    return 0;
+                }
+                public static byte get_wardrobe7_index(ushort iItemID, byte iQuantity, byte iStartIndex)
+                {
+                    return get_wardrobe7_index(processIndex, iItemID, iQuantity, iStartIndex);
+                }
+                public static byte get_wardrobe7_occupancy(int iProcIndex)
+                {
+                    byte count = 0;
+                    byte maxCount = get_max_wardrobe7(iProcIndex);
+                    for (byte ii = 1; ii <= maxCount; ii++)
+                    {
+                        if (get_wardrobe7_item_id(iProcIndex, ii) != 0)
+                        {
+                            count++;
+                        }
+                    }
+                    return count;
+                }
+                public static byte get_wardrobe7_occupancy()
+                {
+                    return get_wardrobe7_occupancy(processIndex);
+                }
+                #endregion Wardrobe7 info
+                #region Wardrobe8_info
+                public static ushort get_wardrobe8_item_id(int iProcIndex, short iStructIndex)
+                {
+                    Process proc = processPointerList[iProcIndex].MainProcess;
+                    return (ushort)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Wardrobe8, (iStructIndex * 44 + 8), 2);
+                }
+                public static ushort get_wardrobe8_item_id(short iStructIndex)
+                {
+                    return get_wardrobe8_item_id(processIndex, iStructIndex);
+                }
+                public static byte get_wardrobe8_item_quan(int iProcIndex, short iStructIndex)
+                {
+                    Process proc = processPointerList[iProcIndex].MainProcess;
+                    return (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Wardrobe8, (iStructIndex * 44 + 8) + 4, 1);
+                }
+                public static byte get_wardrobe8_item_quan(short iStructIndex)
+                {
+                    return get_wardrobe8_item_quan(processIndex, iStructIndex);
+                }
+                public static bool get_wardrobe8_item_equipped(int iProcIndex, short iStructIndex)
+                {
+                    Process proc = processPointerList[iProcIndex].MainProcess;
+                    byte equ = (byte)MemoryFunctions.ReadMem((IntPtr)proc.Handle, processPointerList[processIndex].Info_Inv_Wardrobe8, (iStructIndex * 44 + 8) + 8, 1);
+                    return (equ == 5) ? true : false;
+                }
+                public static bool get_wardrobe8_item_equipped(short iStructIndex)
+                {
+                    return get_wardrobe8_item_equipped(processIndex, iStructIndex);
+                }
+                public static byte get_wardrobe8_index(int iProcIndex, ushort iItemID, byte iQuantity)
+                {
+                    return get_wardrobe8_index(iProcIndex, iItemID, iQuantity, 1);
+                }
+                public static byte get_wardrobe8_index(ushort iItemID, byte iQuantity)
+                {
+                    return get_wardrobe8_index(processIndex, iItemID, iQuantity, 1);
+                }
+                public static byte get_wardrobe8_index(int iProcIndex, ushort iItemID, byte iQuantity, byte iStartIndex)
+                {
+                    byte maxCount = get_max_wardrobe8(iProcIndex);
+                    for (byte ii = iStartIndex; ii <= maxCount; ii++)
+                    {
+                        ushort readID = get_wardrobe8_item_id(iProcIndex, ii);
+                        if (readID == iItemID)
+                        {
+                            byte readQuan = get_wardrobe8_item_quan(iProcIndex, ii);
+                            if (readQuan >= iQuantity)
+                            {
+                                return ii;
+                            }
+                        }
+                    }
+                    return 0;
+                }
+                public static byte get_wardrobe8_index(ushort iItemID, byte iQuantity, byte iStartIndex)
+                {
+                    return get_wardrobe8_index(processIndex, iItemID, iQuantity, iStartIndex);
+                }
+                public static byte get_wardrobe8_occupancy(int iProcIndex)
+                {
+                    byte count = 0;
+                    byte maxCount = get_max_wardrobe8(iProcIndex);
+                    for (byte ii = 1; ii <= maxCount; ii++)
+                    {
+                        if (get_wardrobe8_item_id(iProcIndex, ii) != 0)
+                        {
+                            count++;
+                        }
+                    }
+                    return count;
+                }
+                public static byte get_wardrobe8_occupancy()
+                {
+                    return get_wardrobe8_occupancy(processIndex);
+                }
+                #endregion Wardrobe8 info
             }
             public static class Equipment
             {

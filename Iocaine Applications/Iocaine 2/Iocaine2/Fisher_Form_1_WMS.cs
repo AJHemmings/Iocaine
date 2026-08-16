@@ -27,7 +27,7 @@ namespace Iocaine2
         private string WMS_dataFile = "WMS_Dataset";
         private string WMS_selectedChar = "";
         private string WMS_lastCharOnRebuild = "";
-        private List<string> WMS_inventoryTypes = new List<string>(new string[] { "Bag", "Satchel", "Sack", "Case", "Safe", "Safe2", "Storage", "Locker", "Wardrobe", "Wardrobe2", "Wardrobe3", "Wardrobe4" });
+        private List<string> WMS_inventoryTypes = new List<string>(new string[] { "Bag", "Satchel", "Sack", "Case", "Safe", "Safe2", "Storage", "Locker", "Wardrobe", "Wardrobe2", "Wardrobe3", "Wardrobe4", "Wardrobe5", "Wardrobe6", "Wardrobe7", "Wardrobe8" });
         private bool WMS_initialLBUpdateDone = false;
         private int WMS_pooledColumnWidthLow = 175;
         private int WMS_pooledColumnWidthHi = 225;
@@ -339,6 +339,15 @@ namespace Iocaine2
                 {
                     WMS_LoadSettings();
                     WMS_objectsCreated = true;
+                    //Force a refresh for the character we just logged into. Without this, the WMS tab
+                    //keeps showing the previous character's data until WMS_BackgroundScanThreadFunction
+                    //happens to tick - and that background loop deliberately skips refreshing whenever
+                    //the user is already sitting on the WMS tab with WMS_initialLBUpdateDone set, which
+                    //is exactly the common case when switching characters mid-session.
+                    WMS_rebuildLists();
+                    WMS_UpdateListboxes();
+                    WMS_UpdateDataset();
+                    WMS_initialLBUpdateDone = true;
                 }
                 if (PlayerCache.Vitals.Name != "")
                 {
@@ -394,6 +403,10 @@ namespace Iocaine2
                     WMS_updateControlVisibility(WMS_Wardrobe2OccLabel, false);
                     WMS_updateControlVisibility(WMS_Wardrobe3OccLabel, false);
                     WMS_updateControlVisibility(WMS_Wardrobe4OccLabel, false);
+                    WMS_updateControlVisibility(WMS_Wardrobe5OccLabel, false);
+                    WMS_updateControlVisibility(WMS_Wardrobe6OccLabel, false);
+                    WMS_updateControlVisibility(WMS_Wardrobe7OccLabel, false);
+                    WMS_updateControlVisibility(WMS_Wardrobe8OccLabel, false);
                 }
                 else
                 {
@@ -468,6 +481,14 @@ namespace Iocaine2
                             charRow.Wardrobe3Cap = row.Wardrobe3Cap;
                             charRow.Wardrobe4Occ = row.Wardrobe4Occ;
                             charRow.Wardrobe4Cap = row.Wardrobe4Cap;
+                            charRow.Wardrobe5Occ = row.Wardrobe5Occ;
+                            charRow.Wardrobe5Cap = row.Wardrobe5Cap;
+                            charRow.Wardrobe6Occ = row.Wardrobe6Occ;
+                            charRow.Wardrobe6Cap = row.Wardrobe6Cap;
+                            charRow.Wardrobe7Occ = row.Wardrobe7Occ;
+                            charRow.Wardrobe7Cap = row.Wardrobe7Cap;
+                            charRow.Wardrobe8Occ = row.Wardrobe8Occ;
+                            charRow.Wardrobe8Cap = row.Wardrobe8Cap;
                             charRow.DateSaved = row.DateSaved;
                             WMS_dataset.CharacterInfo.Rows.Add(charRow);
                         }
@@ -564,7 +585,7 @@ namespace Iocaine2
         {
             try
             {
-                if ((ChangeMonitor.MainProc == null) || (ChangeMonitor.MainModule == null) || !MemReads.PointersSet)
+                if ((ChangeMonitor.MainProc == null) || (ChangeMonitor.MainModule == null) || !MemReads.PointersSet || (WMS_dataset == null))
                 {
                     return;
                 }
@@ -599,6 +620,14 @@ namespace Iocaine2
                     rowToAdd.Wardrobe3Cap = Containers.Wardrobe3.Capacity;
                     rowToAdd.Wardrobe4Occ = Containers.Wardrobe4.Occupancy;
                     rowToAdd.Wardrobe4Cap = Containers.Wardrobe4.Capacity;
+                    rowToAdd.Wardrobe5Occ = Containers.Wardrobe5.Occupancy;
+                    rowToAdd.Wardrobe5Cap = Containers.Wardrobe5.Capacity;
+                    rowToAdd.Wardrobe6Occ = Containers.Wardrobe6.Occupancy;
+                    rowToAdd.Wardrobe6Cap = Containers.Wardrobe6.Capacity;
+                    rowToAdd.Wardrobe7Occ = Containers.Wardrobe7.Occupancy;
+                    rowToAdd.Wardrobe7Cap = Containers.Wardrobe7.Capacity;
+                    rowToAdd.Wardrobe8Occ = Containers.Wardrobe8.Occupancy;
+                    rowToAdd.Wardrobe8Cap = Containers.Wardrobe8.Capacity;
                     rowToAdd.DateSaved = DateTime.Now;
                     WMS_dataset.CharacterInfo.Rows.Add(rowToAdd);
                     WMS_dataset.CharacterInfo.AcceptChanges();
@@ -630,6 +659,14 @@ namespace Iocaine2
                     rowToUpdate.Wardrobe3Cap = Containers.Wardrobe3.Capacity;
                     rowToUpdate.Wardrobe4Occ = Containers.Wardrobe4.Occupancy;
                     rowToUpdate.Wardrobe4Cap = Containers.Wardrobe4.Capacity;
+                    rowToUpdate.Wardrobe5Occ = Containers.Wardrobe5.Occupancy;
+                    rowToUpdate.Wardrobe5Cap = Containers.Wardrobe5.Capacity;
+                    rowToUpdate.Wardrobe6Occ = Containers.Wardrobe6.Occupancy;
+                    rowToUpdate.Wardrobe6Cap = Containers.Wardrobe6.Capacity;
+                    rowToUpdate.Wardrobe7Occ = Containers.Wardrobe7.Occupancy;
+                    rowToUpdate.Wardrobe7Cap = Containers.Wardrobe7.Capacity;
+                    rowToUpdate.Wardrobe8Occ = Containers.Wardrobe8.Occupancy;
+                    rowToUpdate.Wardrobe8Cap = Containers.Wardrobe8.Capacity;
                     rowToUpdate.DateSaved = DateTime.Now;
                     WMS_dataset.CharacterInfo.AcceptChanges();
                 }
@@ -696,6 +733,14 @@ namespace Iocaine2
                 WMS_updateControlVisibility(WMS_Wardrobe3Label, false);
                 WMS_updateControlVisibility(WMS_Wardrobe4LB, false);
                 WMS_updateControlVisibility(WMS_Wardrobe4Label, false);
+                WMS_updateControlVisibility(WMS_Wardrobe5LB, false);
+                WMS_updateControlVisibility(WMS_Wardrobe5Label, false);
+                WMS_updateControlVisibility(WMS_Wardrobe6LB, false);
+                WMS_updateControlVisibility(WMS_Wardrobe6Label, false);
+                WMS_updateControlVisibility(WMS_Wardrobe7LB, false);
+                WMS_updateControlVisibility(WMS_Wardrobe7Label, false);
+                WMS_updateControlVisibility(WMS_Wardrobe8LB, false);
+                WMS_updateControlVisibility(WMS_Wardrobe8Label, false);
                 WMS_updateLabelText(WMS_BagLabel, "Pooled Inventory");
                 WMS_updateControlVisibility(WMS_PooledLB, true);
                 WMS_rebuildLists();
@@ -761,6 +806,14 @@ namespace Iocaine2
                 WMS_updateControlVisibility(WMS_Wardrobe3Label, true);
                 WMS_updateControlVisibility(WMS_Wardrobe4LB, true);
                 WMS_updateControlVisibility(WMS_Wardrobe4Label, true);
+                WMS_updateControlVisibility(WMS_Wardrobe5LB, true);
+                WMS_updateControlVisibility(WMS_Wardrobe5Label, true);
+                WMS_updateControlVisibility(WMS_Wardrobe6LB, true);
+                WMS_updateControlVisibility(WMS_Wardrobe6Label, true);
+                WMS_updateControlVisibility(WMS_Wardrobe7LB, true);
+                WMS_updateControlVisibility(WMS_Wardrobe7Label, true);
+                WMS_updateControlVisibility(WMS_Wardrobe8LB, true);
+                WMS_updateControlVisibility(WMS_Wardrobe8Label, true);
                 WMS_rebuildLists();
                 WMS_UpdateListboxes();
                 if ((WMS_CharacterCB.Text != "") && (WMS_selectedChar != PlayerCache.Vitals.Name))
@@ -821,6 +874,14 @@ namespace Iocaine2
                 WMS_updateControlVisibility(WMS_Wardrobe3Label, false);
                 WMS_updateControlVisibility(WMS_Wardrobe4LB, false);
                 WMS_updateControlVisibility(WMS_Wardrobe4Label, false);
+                WMS_updateControlVisibility(WMS_Wardrobe5LB, false);
+                WMS_updateControlVisibility(WMS_Wardrobe5Label, false);
+                WMS_updateControlVisibility(WMS_Wardrobe6LB, false);
+                WMS_updateControlVisibility(WMS_Wardrobe6Label, false);
+                WMS_updateControlVisibility(WMS_Wardrobe7LB, false);
+                WMS_updateControlVisibility(WMS_Wardrobe7Label, false);
+                WMS_updateControlVisibility(WMS_Wardrobe8LB, false);
+                WMS_updateControlVisibility(WMS_Wardrobe8Label, false);
                 WMS_updateLabelText(WMS_BagLabel, "All Inventory");
                 WMS_updateControlVisibility(WMS_PooledLB, true);
                 WMS_rebuildLists();
@@ -965,6 +1026,18 @@ namespace Iocaine2
                     case ItemContainer.STORAGE_TYPE.WARDROBE4:
                         lb = WMS_Wardrobe4LB;
                         break;
+                    case ItemContainer.STORAGE_TYPE.WARDROBE5:
+                        lb = WMS_Wardrobe5LB;
+                        break;
+                    case ItemContainer.STORAGE_TYPE.WARDROBE6:
+                        lb = WMS_Wardrobe6LB;
+                        break;
+                    case ItemContainer.STORAGE_TYPE.WARDROBE7:
+                        lb = WMS_Wardrobe7LB;
+                        break;
+                    case ItemContainer.STORAGE_TYPE.WARDROBE8:
+                        lb = WMS_Wardrobe8LB;
+                        break;
                     default:
                         lb = WMS_BagLB;
                         break;
@@ -1011,6 +1084,18 @@ namespace Iocaine2
                     case "Wardrobe4":
                         lb = WMS_Wardrobe4LB;
                         break;
+                    case "Wardrobe5":
+                        lb = WMS_Wardrobe5LB;
+                        break;
+                    case "Wardrobe6":
+                        lb = WMS_Wardrobe6LB;
+                        break;
+                    case "Wardrobe7":
+                        lb = WMS_Wardrobe7LB;
+                        break;
+                    case "Wardrobe8":
+                        lb = WMS_Wardrobe8LB;
+                        break;
                     default:
                         lb = WMS_BagLB;
                         break;
@@ -1045,12 +1130,18 @@ namespace Iocaine2
                 WMS_updateControlVisibility(WMS_Wardrobe2Label, false);
                 WMS_updateControlVisibility(WMS_Wardrobe3Label, false);
                 WMS_updateControlVisibility(WMS_Wardrobe4Label, false);
+                WMS_updateControlVisibility(WMS_Wardrobe5Label, false);
+                WMS_updateControlVisibility(WMS_Wardrobe6Label, false);
+                WMS_updateControlVisibility(WMS_Wardrobe7Label, false);
+                WMS_updateControlVisibility(WMS_Wardrobe8Label, false);
                 if (charRow != null)
                 {
                     int totalOcc = charRow.BagOcc + charRow.SatchelOcc + charRow.SackOcc + charRow.CaseOcc + charRow.SafeOcc + charRow.Safe2Occ;
                     totalOcc += charRow.StorageOcc + charRow.LockerOcc + charRow.WardrobeOcc + charRow.Wardrobe2Occ + charRow.Wardrobe3Occ + charRow.Wardrobe4Occ;
+                    totalOcc += charRow.Wardrobe5Occ + charRow.Wardrobe6Occ + charRow.Wardrobe7Occ + charRow.Wardrobe8Occ;
                     int totalSpace = charRow.BagCap + charRow.SatchelCap + charRow.SackCap + charRow.CaseCap + charRow.SafeCap + charRow.Safe2Cap;
                     totalSpace += charRow.StorageCap + charRow.LockerCap + charRow.WardrobeCap + charRow.Wardrobe2Cap + charRow.Wardrobe3Cap + charRow.Wardrobe4Cap;
+                    totalSpace += charRow.Wardrobe5Cap + charRow.Wardrobe6Cap + charRow.Wardrobe7Cap + charRow.Wardrobe8Cap;
                     WMS_updateLabelText(WMS_BagOccLabel, totalOcc.ToString() + " / " + totalSpace.ToString());
                 }
                 else if (ChangeMonitor.MainProc == null || ChangeMonitor.MainModule == null)
@@ -1067,6 +1158,10 @@ namespace Iocaine2
                     WMS_updateLabelText(WMS_Wardrobe2OccLabel, "0 / 0");
                     WMS_updateLabelText(WMS_Wardrobe3OccLabel, "0 / 0");
                     WMS_updateLabelText(WMS_Wardrobe4OccLabel, "0 / 0");
+                    WMS_updateLabelText(WMS_Wardrobe5OccLabel, "0 / 0");
+                    WMS_updateLabelText(WMS_Wardrobe6OccLabel, "0 / 0");
+                    WMS_updateLabelText(WMS_Wardrobe7OccLabel, "0 / 0");
+                    WMS_updateLabelText(WMS_Wardrobe8OccLabel, "0 / 0");
                 }
                 else
                 {
@@ -1095,6 +1190,10 @@ namespace Iocaine2
                 WMS_updateControlVisibility(WMS_Wardrobe2OccLabel, true);
                 WMS_updateControlVisibility(WMS_Wardrobe3OccLabel, true);
                 WMS_updateControlVisibility(WMS_Wardrobe4OccLabel, true);
+                WMS_updateControlVisibility(WMS_Wardrobe5OccLabel, true);
+                WMS_updateControlVisibility(WMS_Wardrobe6OccLabel, true);
+                WMS_updateControlVisibility(WMS_Wardrobe7OccLabel, true);
+                WMS_updateControlVisibility(WMS_Wardrobe8OccLabel, true);
                 if (charRow != null)
                 {
                     WMS_updateLabelText(WMS_BagOccLabel, charRow.BagOcc + " / " + charRow.BagCap);
@@ -1109,6 +1208,10 @@ namespace Iocaine2
                     WMS_updateLabelText(WMS_Wardrobe2OccLabel, charRow.Wardrobe2Occ + " / " + charRow.Wardrobe2Cap);
                     WMS_updateLabelText(WMS_Wardrobe3OccLabel, charRow.Wardrobe3Occ + " / " + charRow.Wardrobe3Cap);
                     WMS_updateLabelText(WMS_Wardrobe4OccLabel, charRow.Wardrobe4Occ + " / " + charRow.Wardrobe4Cap);
+                    WMS_updateLabelText(WMS_Wardrobe5OccLabel, charRow.Wardrobe5Occ + " / " + charRow.Wardrobe5Cap);
+                    WMS_updateLabelText(WMS_Wardrobe6OccLabel, charRow.Wardrobe6Occ + " / " + charRow.Wardrobe6Cap);
+                    WMS_updateLabelText(WMS_Wardrobe7OccLabel, charRow.Wardrobe7Occ + " / " + charRow.Wardrobe7Cap);
+                    WMS_updateLabelText(WMS_Wardrobe8OccLabel, charRow.Wardrobe8Occ + " / " + charRow.Wardrobe8Cap);
                 }
                 else if (ChangeMonitor.MainProc == null || ChangeMonitor.MainModule == null)
                 {
@@ -1124,6 +1227,10 @@ namespace Iocaine2
                     WMS_updateLabelText(WMS_Wardrobe2OccLabel, "0 / 0");
                     WMS_updateLabelText(WMS_Wardrobe3OccLabel, "0 / 0");
                     WMS_updateLabelText(WMS_Wardrobe4OccLabel, "0 / 0");
+                    WMS_updateLabelText(WMS_Wardrobe5OccLabel, "0 / 0");
+                    WMS_updateLabelText(WMS_Wardrobe6OccLabel, "0 / 0");
+                    WMS_updateLabelText(WMS_Wardrobe7OccLabel, "0 / 0");
+                    WMS_updateLabelText(WMS_Wardrobe8OccLabel, "0 / 0");
                 }
                 else
                 {
@@ -1139,6 +1246,10 @@ namespace Iocaine2
                     WMS_updateLabelText(WMS_Wardrobe2OccLabel, Containers.Wardrobe2.Occupancy + " / " + Containers.Wardrobe2.Capacity);
                     WMS_updateLabelText(WMS_Wardrobe3OccLabel, Containers.Wardrobe3.Occupancy + " / " + Containers.Wardrobe3.Capacity);
                     WMS_updateLabelText(WMS_Wardrobe4OccLabel, Containers.Wardrobe4.Occupancy + " / " + Containers.Wardrobe4.Capacity);
+                    WMS_updateLabelText(WMS_Wardrobe5OccLabel, Containers.Wardrobe5.Occupancy + " / " + Containers.Wardrobe5.Capacity);
+                    WMS_updateLabelText(WMS_Wardrobe6OccLabel, Containers.Wardrobe6.Occupancy + " / " + Containers.Wardrobe6.Capacity);
+                    WMS_updateLabelText(WMS_Wardrobe7OccLabel, Containers.Wardrobe7.Occupancy + " / " + Containers.Wardrobe7.Capacity);
+                    WMS_updateLabelText(WMS_Wardrobe8OccLabel, Containers.Wardrobe8.Occupancy + " / " + Containers.Wardrobe8.Capacity);
                 }
             }
             else if (WMS_allCharacters)
@@ -1154,6 +1265,10 @@ namespace Iocaine2
                 WMS_updateControlVisibility(WMS_Wardrobe2OccLabel, false);
                 WMS_updateControlVisibility(WMS_Wardrobe3OccLabel, false);
                 WMS_updateControlVisibility(WMS_Wardrobe4OccLabel, false);
+                WMS_updateControlVisibility(WMS_Wardrobe5OccLabel, false);
+                WMS_updateControlVisibility(WMS_Wardrobe6OccLabel, false);
+                WMS_updateControlVisibility(WMS_Wardrobe7OccLabel, false);
+                WMS_updateControlVisibility(WMS_Wardrobe8OccLabel, false);
                 if (WMS_dataset != null)
                 {
                     WMSDataSet.CharacterInfoRow[] charRows = (WMSDataSet.CharacterInfoRow[])WMS_dataset.CharacterInfo.Select();
@@ -1163,8 +1278,10 @@ namespace Iocaine2
                     {
                         totalOcc += row.BagOcc + row.SatchelOcc + row.SackOcc + row.CaseOcc + row.SafeOcc + row.Safe2Occ;
                         totalOcc += row.StorageOcc + row.LockerOcc + row.WardrobeOcc + row.Wardrobe2Occ + row.Wardrobe3Occ + row.Wardrobe4Occ;
+                        totalOcc += row.Wardrobe5Occ + row.Wardrobe6Occ + row.Wardrobe7Occ + row.Wardrobe8Occ;
                         totalSpace += row.BagCap + row.SatchelCap + row.SackCap + row.CaseCap + row.SafeCap + row.Safe2Cap;
                         totalSpace += row.StorageCap + row.LockerCap + row.WardrobeCap + row.Wardrobe2Cap + row.Wardrobe3Cap + row.Wardrobe4Cap;
+                        totalSpace += row.Wardrobe5Cap + row.Wardrobe6Cap + row.Wardrobe7Cap + row.Wardrobe8Cap;
                         WMS_updateLabelText(WMS_BagOccLabel, totalOcc.ToString() + " / " + totalSpace.ToString());
                     }
                 }
@@ -1223,6 +1340,14 @@ namespace Iocaine2
                         charRow.Wardrobe3Cap = row.Wardrobe3Cap;
                         charRow.Wardrobe4Occ = row.Wardrobe4Occ;
                         charRow.Wardrobe4Cap = row.Wardrobe4Cap;
+                        charRow.Wardrobe5Occ = row.Wardrobe5Occ;
+                        charRow.Wardrobe5Cap = row.Wardrobe5Cap;
+                        charRow.Wardrobe6Occ = row.Wardrobe6Occ;
+                        charRow.Wardrobe6Cap = row.Wardrobe6Cap;
+                        charRow.Wardrobe7Occ = row.Wardrobe7Occ;
+                        charRow.Wardrobe7Cap = row.Wardrobe7Cap;
+                        charRow.Wardrobe8Occ = row.Wardrobe8Occ;
+                        charRow.Wardrobe8Cap = row.Wardrobe8Cap;
                         charRow.DateSaved = row.DateSaved;
                         WMS_dataset_temp.CharacterInfo.Rows.Add(charRow);
                     }

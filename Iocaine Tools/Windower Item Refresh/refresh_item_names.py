@@ -74,7 +74,7 @@ def build_array_block(names_by_id: dict[int, str], max_id: int) -> str:
     ]
     for item_id in range(max_id + 1):
         escaped = escape_cs_string(names_by_id.get(item_id, ""))
-        terminator = "}};" if item_id == max_id else ","
+        terminator = "};" if item_id == max_id else ","
         lines.append(f'{indent}"{escaped}"{terminator}\t\t//ID={item_id}')
     lines.append("        #endregion thingNames Array")
     return "\n".join(lines)
